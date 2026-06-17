@@ -1,0 +1,30 @@
+{
+  "name": "repeatless-gmail-intelligence",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-powered Gmail Intelligence Platform — Gmail sync, summarization, categorization, RAG chat agent.",
+  "license": "MIT",
+  "packageManager": "pnpm@9.7.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm --parallel -r run dev",
+    "dev:api": "pnpm --filter @repeatless/api run dev",
+    "dev:web": "pnpm --filter @repeatless/web run dev",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "db:migrate": "pnpm --filter @repeatless/api run db:migrate",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,23 @@
+# Local development stack: Postgres with pgvector (a stand-in for Supabase's
+# managed Postgres). For production, point DATABASE_URL/SUPABASE_URL at your
+# Supabase project instead. The schema is identical — see supabase/migrations.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: repeatless-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: repeatless
+    ports:
+      - "5432:5432"
+    volumes:
+      - repeatless-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d repeatless"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  repeatless-db-data:

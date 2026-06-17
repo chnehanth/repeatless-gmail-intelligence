@@ -1,0 +1,23 @@
+-- =========================================================================
+-- OPTIONAL Row Level Security.
+--
+-- This application talks to Postgres with the Supabase service-role key and
+-- enforces per-user scoping in the data-access layer (every query filters by
+-- user_id). The service role BYPASSES RLS, so these policies are a
+-- defence-in-depth measure for teams that also expose the database directly
+-- to browser clients via the anon/auth key.
+--
+-- Enable per table as needed. Left disabled by default to keep local dev and
+-- the server-side data layer simple.
+-- =========================================================================
+
+-- Example pattern (uncomment and adapt once you wire Supabase Auth):
+--
+-- alter table threads enable row level security;
+-- create policy "threads are owner-only"
+--   on threads for all
+--   using (user_id = auth.uid())
+--   with check (user_id = auth.uid());
+--
+-- Repeat for: messages, message_embeddings, labels, chat_sessions,
+-- chat_messages, sync_state, oauth_credentials.
