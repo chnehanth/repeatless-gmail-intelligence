@@ -13,8 +13,10 @@ sources, never made up.
 
 ## 🚀 Using the app (for evaluators)
 
-**Live demo:** <!-- DEPLOY: replace with the deployed URL -->
-**https://REPLACE-WITH-DEPLOYED-URL** *(deployment link will be added here)*
+**Live demo:** **https://repeatless-gmail-intelligence.onrender.com**
+
+> Hosted on Render's free tier, which **sleeps after ~15 min idle** — the first
+> request may take ~50s to wake the service. Subsequent requests are fast.
 
 ### Sign in with your own Gmail — the 30-second flow
 1. Open the live demo URL above.
