@@ -147,3 +147,22 @@ export async function listSyncableUserIds(): Promise<string[]> {
   if (error) throw internal('Failed to list syncable users', error);
   return (data ?? []).map((r) => r.user_id as string);
 }
+
+/** Resolve the seeded demo user's id by email, or null if not seeded. */
+export async function getDemoUserId(email: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .eq('is_demo', true)
+    .maybeSingle();
+  if (error) throw internal('Failed to look up demo user', error);
+  return (data?.id as string | undefined) ?? null;
+}
+
+/** Whether a user is the seeded demo account (guards real-Gmail side effects). */
+export async function isDemoUser(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from('users').select('is_demo').eq('id', userId).maybeSingle();
+  if (error) throw internal('Failed to check demo flag', error);
+  return Boolean(data?.is_demo);
+}

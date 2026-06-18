@@ -46,6 +46,8 @@ export const api = {
   loginUrl: `${BASE}/auth/google`,
   me: () => request<UserProfile>('/auth/me'),
   logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
+  authConfig: () => request<{ demoEnabled: boolean }>('/auth/config'),
+  demoLogin: () => request<{ ok: boolean }>('/auth/demo', { method: 'POST' }),
 
   syncStatus: () =>
     request<{

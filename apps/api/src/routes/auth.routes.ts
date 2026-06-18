@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../lib/http.js';
 import { env, isProd } from '../config/env.js';
 import { OAUTH_STATE_COOKIE, SESSION_COOKIE } from '../config/constants.js';
-import { completeOAuth, startOAuth, SESSION_MAX_AGE_MS } from '../services/auth.service.js';
+import { completeOAuth, loginDemo, startOAuth, SESSION_MAX_AGE_MS } from '../services/auth.service.js';
 import { getUserProfile } from '../repos/users.repo.js';
 import { attachUser, currentUserId, requireAuth } from '../middleware/auth.js';
 import { badRequest } from '../lib/errors.js';
@@ -67,3 +67,18 @@ authRouter.post('/logout', (_req, res) => {
   res.clearCookie(SESSION_COOKIE, { path: '/' });
   res.json({ ok: true });
 });
+
+// Public config — lets the SPA decide whether to show the "Explore the demo" button.
+authRouter.get('/config', (_req, res) => {
+  res.json({ demoEnabled: env.DEMO_MODE });
+});
+
+// One-click demo login (no Google). Enabled only when DEMO_MODE is on.
+authRouter.post(
+  '/demo',
+  asyncHandler(async (_req, res) => {
+    const { sessionToken } = await loginDemo();
+    res.cookie(SESSION_COOKIE, sessionToken, sessionCookieOpts);
+    res.json({ ok: true });
+  }),
+);

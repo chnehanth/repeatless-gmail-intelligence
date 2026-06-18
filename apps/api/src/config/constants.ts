@@ -21,9 +21,14 @@ export const MAX_BODY_CHARS_FOR_LLM = 12_000;
 export const EMBED_CHUNK_CHARS = 1_500;
 export const EMBED_CHUNK_OVERLAP = 200;
 
-/** RAG retrieval defaults. */
+/** RAG retrieval defaults. We use pure top-K nearest-neighbour ranking with no
+ * absolute-similarity floor (-1 ⇒ never filter): gemini-embedding-001 truncated
+ * to 768 dims yields a compressed/low cosine range where even relevant chunks
+ * can score near zero, so any positive floor silently drops good matches. The
+ * `<=>` distance ordering still surfaces the closest chunks first, and the
+ * grounding/anti-hallucination prompt discards anything irrelevant. */
 export const RAG_TOP_K = 8;
-export const RAG_MIN_SIMILARITY = 0.2;
+export const RAG_MIN_SIMILARITY = -1;
 
 /** Newsletter dedup similarity threshold (cosine). */
 export const NEWS_DEDUP_THRESHOLD = 0.82;

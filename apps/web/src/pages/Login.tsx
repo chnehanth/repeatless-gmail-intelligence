@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { wordmark } from '../ds';
 
@@ -6,6 +7,14 @@ import { wordmark } from '../ds';
 export function Login() {
   const params = new URLSearchParams(window.location.search);
   const authError = params.get('auth_error');
+
+  const config = useQuery({ queryKey: ['authConfig'], queryFn: api.authConfig, retry: 0 });
+  const demo = useMutation({
+    mutationFn: api.demoLogin,
+    onSuccess: () => {
+      window.location.href = '/inbox';
+    },
+  });
 
   return (
     <div
@@ -78,6 +87,54 @@ export function Login() {
           >
             <GoogleG /> Continue with Google
           </a>
+
+          {config.data?.demoEnabled && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
+                <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--text-subtle)' }}>or</span>
+                <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+              </div>
+              <button
+                onClick={() => demo.mutate()}
+                disabled={demo.isPending}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  width: '100%',
+                  height: 46,
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  cursor: demo.isPending ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 15,
+                  fontWeight: 600,
+                }}
+              >
+                {demo.isPending ? 'Loading demo…' : '✨ Explore the demo — no sign-in'}
+              </button>
+              <p
+                style={{
+                  margin: '8px 0 0',
+                  textAlign: 'center',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 12,
+                  color: 'var(--text-subtle)',
+                }}
+              >
+                A populated sample inbox with working AI summaries, categories &amp; chat.
+              </p>
+              {demo.isError && (
+                <p style={{ margin: '8px 0 0', textAlign: 'center', fontSize: 12, color: 'var(--danger)' }}>
+                  Couldn&apos;t start the demo. Please try again.
+                </p>
+              )}
+            </>
+          )}
 
           <div
             style={{

@@ -3,7 +3,7 @@ import { triggerSyncSchema } from '@repeatless/shared';
 import { asyncHandler } from '../lib/http.js';
 import { currentUserId } from '../middleware/auth.js';
 import { runSync } from '../gmail/sync.js';
-import { getSyncState, getUserProfile } from '../repos/users.repo.js';
+import { getSyncState, getUserProfile, isDemoUser } from '../repos/users.repo.js';
 import { countThreads } from '../repos/threads.repo.js';
 import { childLogger } from '../observability/logger.js';
 
@@ -16,6 +16,11 @@ syncRouter.post(
   asyncHandler(async (req, res) => {
     const userId = currentUserId(req);
     const { mode } = triggerSyncSchema.parse(req.body ?? {});
+    // The demo account has no Gmail connection — accept but no-op.
+    if (await isDemoUser(userId)) {
+      res.status(202).json({ accepted: true, mode, demo: true });
+      return;
+    }
     // Fire-and-forget: the client polls /sync/status for progress.
     void runSync(userId, mode).catch((err) =>
       log.error({ userId, err: err instanceof Error ? err.message : err }, 'triggered sync failed'),

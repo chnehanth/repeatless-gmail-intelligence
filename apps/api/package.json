@@ -12,7 +12,8 @@
     "lint": "eslint \"src/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "seed:demo": "tsx src/db/seed-demo.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

@@ -1,8 +1,9 @@
 import { buildAuthUrl, exchangeCode, authedClient, fetchUserInfo } from '../gmail/oauth.js';
-import { saveCredentials, upsertUser } from '../repos/users.repo.js';
+import { saveCredentials, upsertUser, getDemoUserId } from '../repos/users.repo.js';
 import { runSync } from '../gmail/sync.js';
 import { signToken, randomToken } from '../lib/crypto.js';
-import { badRequest } from '../lib/errors.js';
+import { badRequest, notFound } from '../lib/errors.js';
+import { env } from '../config/env.js';
 import { childLogger } from '../observability/logger.js';
 
 const log = childLogger('service:auth');
@@ -42,6 +43,21 @@ export async function completeOAuth(code: string): Promise<{ userId: string; ses
   const sessionToken = signToken(JSON.stringify({ sub: user.id, exp: expMs }));
   log.info({ userId: user.id, email: info.email }, 'user authenticated via Google OAuth');
   return { userId: user.id, sessionToken };
+}
+
+/**
+ * Issue a session for the seeded demo account — no Google OAuth. Enabled only
+ * when DEMO_MODE is on; lets evaluators explore a populated inbox + chatbot
+ * without a Google sign-in or being on the OAuth test-user allow-list.
+ */
+export async function loginDemo(): Promise<{ userId: string; sessionToken: string }> {
+  if (!env.DEMO_MODE) throw notFound('Demo mode is disabled');
+  const userId = await getDemoUserId(env.DEMO_USER_EMAIL);
+  if (!userId) throw notFound('Demo account is not seeded');
+  const expMs = Date.now() + SESSION_TTL_MS;
+  const sessionToken = signToken(JSON.stringify({ sub: userId, exp: expMs }));
+  log.info({ userId }, 'demo session issued');
+  return { userId, sessionToken };
 }
 
 export const SESSION_MAX_AGE_MS = SESSION_TTL_MS;

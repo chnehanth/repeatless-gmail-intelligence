@@ -18,6 +18,22 @@ sources, never made up.
 > Hosted on Render's free tier, which **sleeps after ~15 min idle** — the first
 > request may take ~50s to wake the service. Subsequent requests are fast.
 
+### ⭐ Fastest: one-click demo (no Google sign-in)
+On the live site, click **"✨ Explore the demo — no sign-in."** It logs you into a
+**seeded showcase inbox** (14 realistic threads across all categories) so you can
+immediately try every feature — AI summaries, category badges, the **RAG chat
+agent with cited sources**, and the **news digest** — without any Google account
+or test-user allow-listing.
+
+Things to try in the demo's **Ask AI**:
+- *"Which companies rejected my job application? List them all."* → synthesizes across emails, cites each.
+- *"What's the status of the data migration project?"* → reasons over a multi-message thread.
+- *"What tech news is there about Kubernetes?"* → merges the same story from two newsletters.
+
+*(Sending email and Gmail sync are disabled in the demo, since it has no real
+Gmail connection — drafting still works. Sign in with a real Gmail for the full
+experience.)*
+
 ### Sign in with your own Gmail — the 30-second flow
 1. Open the live demo URL above.
 2. Click **Continue with Google** and choose **your own** Gmail account.
@@ -51,10 +67,9 @@ Clicking **Advanced → Continue** is safe — you are granting access to *your 
 app instance, and no data leaves your Supabase project.
 
 ### If your sign-in is ever blocked
-Google occasionally restricts restricted-scope apps for accounts outside the
-test list. If you hit *"Access blocked,"* use either fallback:
-- **Demo account** — pre-seeded inbox for evaluation:
-  <!-- DEPLOY: add demo creds or remove --> *(credentials in the submission form / on request)*
+Google blocks accounts outside the test list while the app is unverified
+(restricted Gmail scope). If you hit *"Access blocked,"* just use the
+**one-click demo** above — it needs no Google account at all. Other options:
 - **Allow-list your email** — email the address you'll test with and it's added
   to Google's test-user list in ~30 seconds.
 - **Demo video** — a short walkthrough is linked in the submission form.

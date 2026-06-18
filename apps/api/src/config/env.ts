@@ -68,6 +68,11 @@ const envSchema = z.object({
   METRICS_ENABLED: booleanString.default('true'),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional().default(''),
   OTEL_SERVICE_NAME: z.string().default('repeatless-api'),
+
+  // Demo mode — enables a no-Google "Explore the demo" login backed by a seeded
+  // showcase account. Off by default; enable on the public deployment.
+  DEMO_MODE: booleanString.default('false'),
+  DEMO_USER_EMAIL: z.string().default('demo@repeatless.app'),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -8,7 +8,7 @@ import { truncate } from '../lib/text.js';
 import { buildRawMessage, replySubject } from '../lib/mime.js';
 import { getMessagesForThread } from '../repos/messages.repo.js';
 import { getThread } from '../repos/threads.repo.js';
-import { getUserProfile } from '../repos/users.repo.js';
+import { getUserProfile, isDemoUser } from '../repos/users.repo.js';
 import { getAuthedGmailClient } from '../gmail/session.js';
 import { runSync } from '../gmail/sync.js';
 import { badRequest, notFound } from '../lib/errors.js';
@@ -97,6 +97,9 @@ function pickReplyTarget(
 /** Send an email (new or reply) via Gmail, then trigger an incremental sync so
  * the sent message appears locally. */
 export async function sendEmail(userId: string, req: SendEmailRequest): Promise<{ gmailMessageId: string }> {
+  if (await isDemoUser(userId)) {
+    throw badRequest('Sending is disabled in the demo. Drafting works — connect a real Gmail account to send.');
+  }
   if (req.to.length === 0) throw badRequest('At least one recipient is required');
   const me = await getUserProfile(userId);
   const fromName = me.displayName ? `${me.displayName} <${me.email}>` : me.email;
