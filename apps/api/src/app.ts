@@ -42,7 +42,10 @@ export function createApp(): Express {
   // Operational endpoints (no auth): health, readiness, SLO, metrics.
   app.use(API_PREFIX, healthRouter);
 
-  app.get('/', (_req, res) => {
+  // API metadata at a dedicated path. The root path "/" is intentionally left
+  // for the SPA (served below in production); a JSON route here would shadow it
+  // and show evaluators raw JSON instead of the app.
+  app.get('/api', (_req, res) => {
     res.json({ name: 'Repeatless Gmail Intelligence API', version: '1.0.0', docs: `${API_PREFIX}/health` });
   });
 
