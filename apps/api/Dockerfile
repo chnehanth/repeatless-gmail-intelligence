@@ -1,7 +1,7 @@
 # Single-service production image: builds the shared package, the React SPA, and
 # the API, then runs the API which also serves the built SPA from the same
 # origin (see app.ts static-serving block). One container = whole product.
-FROM node:20-slim
+FROM node:22-slim
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
