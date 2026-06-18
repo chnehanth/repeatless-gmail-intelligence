@@ -1,0 +1,16 @@
+# Never ship these into the build context / image.
+.git
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.pnpm-store
+*.log
+logs
+# Secrets — provided at runtime via the platform's env vars, never baked in.
+.env
+**/.env
+**/.env.*
+!**/.env.example
+.claude/settings.local.json
+apps/web/.vite
+coverage

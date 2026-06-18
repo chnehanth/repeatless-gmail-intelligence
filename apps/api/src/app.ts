@@ -2,6 +2,8 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { env } from './config/env.js';
 import { API_PREFIX } from './config/constants.js';
 import { requestContext } from './middleware/requestContext.js';
@@ -62,6 +64,20 @@ export function createApp(): Express {
   protectedRouter.use(newsletterRouter);
 
   app.use(API_PREFIX, protectedRouter);
+
+  // In production we serve the built SPA from the same origin as the API. This
+  // keeps the session cookie first-party (no cross-site cookie config needed)
+  // and lets the whole product deploy as a single service. The path can be
+  // overridden with WEB_DIST_PATH; if the build isn't present (e.g. local dev
+  // where Vite serves the SPA), this is skipped.
+  const webDist = process.env.WEB_DIST_PATH ?? path.resolve(process.cwd(), 'apps/web/dist');
+  if (existsSync(path.join(webDist, 'index.html'))) {
+    app.use(express.static(webDist));
+    // SPA fallback: any non-API GET returns index.html so client routes work.
+    app.get(/^\/(?!api\/).*/, (_req, res) => {
+      res.sendFile(path.join(webDist, 'index.html'));
+    });
+  }
 
   app.use(notFoundHandler);
   app.use(errorHandler);
