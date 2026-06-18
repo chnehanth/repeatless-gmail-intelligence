@@ -11,6 +11,54 @@ sources, never made up.
 
 ---
 
+## 🚀 Using the app (for evaluators)
+
+**Live demo:** <!-- DEPLOY: replace with the deployed URL -->
+**https://REPLACE-WITH-DEPLOYED-URL** *(deployment link will be added here)*
+
+### Sign in with your own Gmail — the 30-second flow
+1. Open the live demo URL above.
+2. Click **Continue with Google** and choose **your own** Gmail account.
+3. You'll see a **"Google hasn't verified this app"** screen → click
+   **Advanced → Continue (go to Repeatless)**. *(This is expected — see the note
+   below; it is not a security issue with the app.)*
+4. Approve the Gmail permissions. The app connects **your** inbox, begins
+   syncing, and AI enrichment (summaries, categories, embeddings) runs in the
+   background — watch the live **sync indicator** in the sidebar.
+5. Explore:
+   - **Inbox** — threads with AI summaries + auto categories; filter by category,
+     search, toggle unread.
+   - **Ask AI** — ask questions about your mail (e.g. *"Summarize this week's
+     finance updates"*); every answer is **grounded with `[S#]` source cards**
+     that link back to the exact email.
+   - Open a thread → **Reply with AI** (drafts a thread-aware reply you review
+     before sending); or **Compose with AI** from the inbox.
+   - **News digest** — your newsletters, **deduplicated** into unique stories.
+
+> The app is fully **multi-user** — each person who signs in gets their own
+> isolated, private inbox. Your emails are never shared across accounts, and
+> OAuth tokens are encrypted at rest.
+
+### Why the "unverified app" warning appears (and why it's fine)
+Reading Gmail content requires Google's **`gmail.modify` restricted scope**. For
+*any* user to sign in without a warning, Google requires full **OAuth
+verification + a third-party security assessment (CASA)** — a multi-week process
+out of scope for this assessment. Until then the app runs in Google's
+pre-verification mode, which simply shows the one-time "unverified app" screen.
+Clicking **Advanced → Continue** is safe — you are granting access to *your own*
+app instance, and no data leaves your Supabase project.
+
+### If your sign-in is ever blocked
+Google occasionally restricts restricted-scope apps for accounts outside the
+test list. If you hit *"Access blocked,"* use either fallback:
+- **Demo account** — pre-seeded inbox for evaluation:
+  <!-- DEPLOY: add demo creds or remove --> *(credentials in the submission form / on request)*
+- **Allow-list your email** — email the address you'll test with and it's added
+  to Google's test-user list in ~30 seconds.
+- **Demo video** — a short walkthrough is linked in the submission form.
+
+---
+
 ## Features
 
 - 🔐 **Gmail integration** — OAuth 2.0, full + incremental sync, rate-limit &
