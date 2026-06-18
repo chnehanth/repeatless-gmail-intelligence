@@ -1,10 +1,23 @@
 import { z } from 'zod';
+import path from 'node:path';
+import dotenv from 'dotenv';
 
 /**
  * Centralised, validated configuration. The process refuses to boot if
  * required variables are missing or malformed — fail fast, never run with a
  * half-configured surface. Access config ONLY through the exported `env`.
+ *
+ * Loads `.env` from the app directory and the monorepo root (in that
+ * precedence — real environment variables always win, then local, then root).
+ * In production, prefer real injected env vars; .env files are a dev convenience.
  */
+dotenv.config({
+  path: [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), '../../.env'),
+    path.resolve(process.cwd(), '../../../.env'),
+  ],
+});
 
 const booleanString = z
   .enum(['true', 'false', '1', '0'])
@@ -37,8 +50,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
 
   GEMINI_API_KEY: z.string().min(1),
-  GEMINI_CHAT_MODEL: z.string().default('gemini-1.5-flash'),
-  GEMINI_EMBEDDING_MODEL: z.string().default('text-embedding-004'),
+  GEMINI_CHAT_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_EMBEDDING_MODEL: z.string().default('gemini-embedding-001'),
 
   NIM_API_KEY: z.string().min(1),
   NIM_BASE_URL: z.string().url().default('https://integrate.api.nvidia.com/v1'),
