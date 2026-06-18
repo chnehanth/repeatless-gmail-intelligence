@@ -1,50 +1,115 @@
 import { api } from '../lib/api';
+import { wordmark } from '../ds';
 
+/** Branded sign-in screen (design-system styling), wired to the real OAuth
+ * start endpoint. Surfaces an auth error passed back via ?auth_error=. */
 export function Login() {
   const params = new URLSearchParams(window.location.search);
   const authError = params.get('auth_error');
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 to-white p-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-100">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">
-            R
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Repeatless</h1>
-            <p className="text-sm text-slate-500">Gmail Intelligence Platform</p>
-          </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--surface-page)',
+        padding: 24,
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: 380 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 26 }}>
+          <img src={wordmark} alt="Repeatless" style={{ height: 30 }} />
         </div>
 
-        <p className="mb-6 text-sm leading-relaxed text-slate-600">
-          Connect your Gmail to get AI summaries, automatic categorization, thread-aware replies, and a chat
-          assistant that answers questions across your inbox — always with sources.
-        </p>
-
-        {authError && (
-          <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            Sign-in failed: {authError}. Please try again.
-          </div>
-        )}
-
-        <a
-          href={api.loginUrl}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+        <div
+          style={{
+            background: 'var(--surface-card)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-2xl)',
+            boxShadow: 'var(--shadow-lg)',
+            padding: 32,
+          }}
         >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1Z" />
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z" />
-            <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z" />
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38Z" />
-          </svg>
-          Continue with Google
-        </a>
+          <h1 style={{ font: 'var(--type-h3)', color: 'var(--text-strong)', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            Sign in to Repeatless
+          </h1>
+          <p style={{ font: 'var(--type-body)', color: 'var(--text-muted)', margin: '0 0 24px' }}>
+            An inbox that reads, summarizes, and answers for you.
+          </p>
 
-        <p className="mt-4 text-center text-xs text-slate-400">
-          We request read &amp; send access to power the assistant. Tokens are encrypted at rest.
-        </p>
+          {authError && (
+            <div
+              style={{
+                background: 'var(--danger-soft)',
+                border: '1px solid var(--red-100)',
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 12px',
+                marginBottom: 16,
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                color: 'var(--red-600)',
+              }}
+            >
+              Couldn&apos;t sign in: {authError}. Please try again.
+            </div>
+          )}
+
+          <a
+            href={api.loginUrl}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              width: '100%',
+              height: 46,
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-default)',
+              background: 'var(--surface-card)',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--text-strong)',
+              textDecoration: 'none',
+            }}
+          >
+            <GoogleG /> Continue with Google
+          </a>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              marginTop: 18,
+              justifyContent: 'center',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 12,
+              color: 'var(--text-subtle)',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Your tokens are encrypted at rest.
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function GoogleG() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" style={{ flex: 'none' }} aria-hidden>
+      <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z" />
+      <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z" />
+      <path fill="#FBBC05" d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34A21.99 21.99 0 0 0 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z" />
+      <path fill="#EA4335" d="M24 9.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 3.18 29.93 1 24 1 15.4 1 7.96 5.93 4.34 13.12l7.35 5.7C13.42 13.62 18.27 9.75 24 9.75z" />
+    </svg>
   );
 }

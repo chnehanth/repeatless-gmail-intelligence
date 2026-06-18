@@ -1,0 +1,7 @@
+<svg width="184" height="34" viewBox="0 0 184 34" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Repeatless">
+  <g transform="translate(0,1)">
+    <path d="M19.8 7.84 A9 9 0 1 1 12.2 7.84" stroke="#5C82FF" stroke-width="2.7" stroke-linecap="round" fill="none"></path>
+    <path d="M16.8 5.4 L10.6 4.9 L13.7 11.0 Z" fill="#5C82FF"></path>
+  </g>
+  <text x="40" y="24" font-family="Geist, ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="700" letter-spacing="-0.6" fill="#FFFFFF">Repeatless</text>
+</svg>

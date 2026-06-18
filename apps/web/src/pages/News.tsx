@@ -1,80 +1,106 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import type { NewsItem } from '@repeatless/shared';
 import { api } from '../lib/api';
+import { Badge, EmptyState, Skeleton, ToneSelector } from '../ds';
+
+const WINDOWS: Record<string, number> = {
+  '1 day': 1,
+  '2 days': 2,
+  '4 days': 4,
+  '7 days': 7,
+  '14 days': 14,
+};
 
 export function News() {
-  const [days, setDays] = useState(4);
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const [win, setWin] = useState('4 days');
+  const days = WINDOWS[win] ?? 4;
+
+  const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ['news', days],
     queryFn: () => api.newsDigest(days),
   });
 
+  const stories = data?.items ?? [];
+
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <div className="mb-1 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">News Digest</h1>
-        <div className="flex items-center gap-2">
-          <select
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-            className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-          >
-            {[1, 2, 4, 7, 14].map((d) => (
-              <option key={d} value={d}>
-                Last {d} day{d > 1 ? 's' : ''}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => refetch()}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-          >
-            ↻
-          </button>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '22px 28px 16px', flex: 'none', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ font: 'var(--type-h2)', letterSpacing: '-0.02em', color: 'var(--text-strong)', margin: 0 }}>News digest</h1>
+            <p style={{ font: 'var(--type-body-sm)', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+              Newsletters, deduplicated into the stories that matter.
+            </p>
+          </div>
+          <ToneSelector options={Object.keys(WINDOWS)} value={win} onChange={setWin} />
         </div>
       </div>
-      <p className="mb-4 text-sm text-slate-500">
-        Unique stories extracted from your newsletters, with duplicates merged across sources.
-      </p>
 
-      {isLoading || isFetching ? (
-        <p className="text-slate-400">Analyzing newsletters…</p>
-      ) : isError ? (
-        <p className="text-red-500">Could not build the digest.</p>
-      ) : !data || data.items.length === 0 ? (
-        <div className="rounded-xl bg-white p-12 text-center ring-1 ring-slate-200">
-          <p className="text-sm text-slate-500">
-            No newsletter stories found in this window. Make sure your inbox has synced and contains newsletters.
-          </p>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 'var(--content-max)', margin: '0 auto', padding: '22px 28px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {isLoading || isFetching ? (
+            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} height={120} radius={16} />)
+          ) : isError ? (
+            <p style={{ font: 'var(--type-body)', color: 'var(--danger)' }}>Couldn&apos;t build the digest.</p>
+          ) : stories.length === 0 ? (
+            <EmptyState
+              icon="newspaper"
+              title="No stories yet."
+              description="No newsletter stories in this window. Make sure your inbox has synced."
+            />
+          ) : (
+            stories.map((story, i) => <StoryCard key={i} story={story} />)
+          )}
         </div>
-      ) : (
-        <ol className="space-y-3">
-          {data.items.map((item, i) => (
-            <li key={i} className="rounded-xl bg-white p-4 ring-1 ring-slate-200">
-              <h3 className="font-semibold text-slate-900">{item.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">{item.summary}</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {item.sources.map((s, j) => (
-                  <Link
-                    key={j}
-                    to={`/inbox/${s.threadId}`}
-                    className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200"
-                    title={s.subject ?? ''}
-                  >
-                    {s.sender ?? 'source'}
-                  </Link>
-                ))}
-                {item.sources.length > 1 && (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
-                    {item.sources.length} sources
-                  </span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
-      )}
+      </div>
+    </div>
+  );
+}
+
+function StoryCard({ story }: { story: NewsItem }) {
+  return (
+    <div
+      style={{
+        background: 'var(--surface-card)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: 'var(--shadow-xs)',
+        padding: 18,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+        <h3 style={{ font: 'var(--type-h4)', letterSpacing: '-0.01em', color: 'var(--text-strong)', margin: '0 0 6px' }}>{story.title}</h3>
+        {story.sources.length > 1 && (
+          <Badge variant="blue" size="sm">
+            {story.sources.length} sources
+          </Badge>
+        )}
+      </div>
+      <p style={{ font: 'var(--type-body)', color: 'var(--text-muted)', margin: '0 0 14px', lineHeight: 1.55 }}>{story.summary}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        {story.sources.map((s, j) => (
+          <span
+            key={j}
+            title={s.subject ?? ''}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '3px 9px',
+              borderRadius: 'var(--radius-full)',
+              background: 'var(--surface-sunken)',
+              border: '1px solid var(--border-subtle)',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 12,
+              color: 'var(--text-muted)',
+            }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-subtle)' }} />
+            {s.sender ?? 'source'}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

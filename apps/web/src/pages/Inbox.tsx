@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { EMAIL_CATEGORIES, type EmailCategory } from '@repeatless/shared';
 import { api } from '../lib/api';
-import { categoryClass, formatDate, initials } from '../lib/ui';
+import { categoryToDs, formatDate } from '../lib/ui';
+import { Button, EmptyState, Input, Skeleton, Switch, ThreadRow } from '../ds';
 import { ComposeModal } from '../components/ComposeModal';
 
+const CHIPS: ('All' | EmailCategory)[] = ['All', ...EMAIL_CATEGORIES];
+
 export function Inbox() {
+  const navigate = useNavigate();
   const [category, setCategory] = useState<EmailCategory | undefined>();
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -24,126 +28,112 @@ export function Inbox() {
   const threads = query.data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Inbox</h1>
-        <button
-          onClick={() => setComposeOpen(true)}
-          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700"
-        >
-          ✏️ Compose with AI
-        </button>
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSearch(searchInput.trim());
-        }}
-        className="mb-3 flex gap-2"
-      >
-        <input
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search subjects…"
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
-        />
-        <label className="flex items-center gap-1.5 text-sm text-slate-600">
-          <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} />
-          Unread
-        </label>
-      </form>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Chip active={!category} onClick={() => setCategory(undefined)} label="All" />
-        {EMAIL_CATEGORIES.map((c) => (
-          <Chip key={c} active={category === c} onClick={() => setCategory(c)} label={c} />
-        ))}
-      </div>
-
-      {query.isLoading ? (
-        <SkeletonList />
-      ) : threads.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
-          {threads.map((t) => (
-            <li key={t.id}>
-              <Link to={`/inbox/${t.id}`} className="block px-4 py-3 transition hover:bg-slate-50">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
-                    {initials(t.participants[0]?.name ?? null, t.participants[0]?.email ?? '?')}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`truncate text-sm ${t.isUnread ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
-                        {t.subject || '(no subject)'}
-                      </span>
-                      {t.messageCount > 1 && (
-                        <span className="flex-none rounded bg-slate-100 px-1.5 text-xs text-slate-500">{t.messageCount}</span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{t.summary ?? 'Summary pending…'}</p>
-                  </div>
-                  <div className="flex flex-none flex-col items-end gap-1.5">
-                    <span className="text-xs text-slate-400">{formatDate(t.lastMessageAt)}</span>
-                    {t.category && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryClass(t.category)}`}>
-                        {t.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {query.hasNextPage && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => query.fetchNextPage()}
-            disabled={query.isFetchingNextPage}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-          >
-            {query.isFetchingNextPage ? 'Loading…' : 'Load more'}
-          </button>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '22px 28px 0', flex: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <h1 style={{ font: 'var(--type-h2)', letterSpacing: '-0.02em', color: 'var(--text-strong)', margin: 0 }}>Inbox</h1>
+          <Button leftIcon="sparkles" onClick={() => setComposeOpen(true)}>
+            Compose with AI
+          </Button>
         </div>
-      )}
 
-      {composeOpen && <ComposeModal onClose={() => setComposeOpen(false)} />}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSearch(searchInput.trim());
+          }}
+          style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '18px 0 14px' }}
+        >
+          <div style={{ flex: 1, maxWidth: 360 }}>
+            <Input
+              size="sm"
+              leftIcon="search"
+              placeholder="Search subjects"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
+          <Switch label="Unread only" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} />
+        </form>
+
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 14 }}>
+          {CHIPS.map((c) => (
+            <Chip
+              key={c}
+              label={c}
+              active={c === 'All' ? !category : category === c}
+              onClick={() => setCategory(c === 'All' ? undefined : (c as EmailCategory))}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--border-subtle)' }}>
+        {query.isLoading ? (
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} height={54} radius={12} />
+            ))}
+          </div>
+        ) : threads.length === 0 ? (
+          <EmptyState
+            icon="inbox"
+            title={unreadOnly ? 'No unread threads.' : 'Nothing matches.'}
+            description="Your inbox is still syncing, or nothing matches this filter."
+          />
+        ) : (
+          <div>
+            {threads.map((t) => (
+              <ThreadRow
+                key={t.id}
+                sender={t.participants[0]?.name ?? t.participants[0]?.email ?? 'Unknown'}
+                subject={t.subject || '(no subject)'}
+                summary={t.summary ?? undefined}
+                date={formatDate(t.lastMessageAt)}
+                messageCount={t.messageCount}
+                category={categoryToDs(t.category) ?? undefined}
+                unread={t.isUnread}
+                onClick={() => navigate(`/inbox/${t.id}`)}
+              />
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '18px 0 28px' }}>
+              {query.hasNextPage ? (
+                <Button variant="secondary" size="sm" loading={query.isFetchingNextPage} onClick={() => query.fetchNextPage()}>
+                  Load more
+                </Button>
+              ) : (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-subtle)' }}>
+                  {threads.length} threads
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {composeOpen && <ComposeModal mode="compose" onClose={() => setComposeOpen(false)} />}
     </div>
   );
 }
 
-function Chip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-        active ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
-      }`}
+      style={{
+        padding: '6px 13px',
+        borderRadius: 'var(--radius-full)',
+        cursor: 'pointer',
+        fontFamily: 'var(--font-sans)',
+        fontSize: 13,
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        border: '1px solid ' + (active ? 'transparent' : 'var(--border-default)'),
+        background: active ? 'var(--accent)' : 'var(--surface-card)',
+        color: active ? '#fff' : 'var(--text-body)',
+      }}
     >
       {label}
     </button>
-  );
-}
-
-function SkeletonList() {
-  return (
-    <div className="space-y-2">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-16 animate-pulse rounded-xl bg-white ring-1 ring-slate-100" />
-      ))}
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="rounded-xl bg-white p-12 text-center ring-1 ring-slate-200">
-      <p className="text-sm text-slate-500">No threads yet. Your inbox is still syncing, or no emails match this filter.</p>
-    </div>
   );
 }

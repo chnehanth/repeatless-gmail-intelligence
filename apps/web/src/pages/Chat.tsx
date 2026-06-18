@@ -1,22 +1,23 @@
-import { useRef, useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import type { ChatMessage, SourceCitation } from '@repeatless/shared';
+import { useNavigate } from 'react-router-dom';
+import type { ChatMessage } from '@repeatless/shared';
 import { api } from '../lib/api';
-import { formatDateTime } from '../lib/ui';
+import { ChatBubble, Icon, SourceCard } from '../ds';
 
 const SUGGESTIONS = [
-  'Which companies rejected my job application? List them all.',
-  'Summarize all emails from the last week.',
+  'Which companies rejected my job application?',
+  "Summarize this week's finance updates.",
   'What has been discussed about any ongoing projects?',
-  'Give me an overview of what I know about a topic from my emails.',
+  'List the important tech news from the past few days.',
 ];
 
 export function Chat() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState<string | undefined>();
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const ask = useMutation({
     mutationFn: (text: string) => api.chat(text, sessionId),
@@ -27,123 +28,156 @@ export function Chat() {
   });
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, ask.isPending]);
 
-  function submit(text: string) {
+  function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || ask.isPending) return;
-    const optimistic: ChatMessage = {
-      id: `local-${Date.now()}`,
-      sessionId: sessionId ?? 'pending',
-      role: 'user',
-      content: trimmed,
-      citations: [],
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, optimistic]);
+    setMessages((prev) => [
+      ...prev,
+      { id: `local-${Date.now()}`, sessionId: sessionId ?? 'pending', role: 'user', content: trimmed, citations: [], createdAt: new Date().toISOString() },
+    ]);
     setInput('');
     ask.mutate(trimmed);
   }
 
+  const empty = messages.length === 0 && !ask.isPending;
+
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col p-6">
-      <h1 className="mb-1 text-2xl font-bold text-slate-900">Ask your inbox</h1>
-      <p className="mb-4 text-sm text-slate-500">
-        Answers are grounded in your emails, with sources. The assistant won&apos;t make things up.
-      </p>
-
-      <div className="flex-1 space-y-4 overflow-y-auto rounded-xl bg-white p-4 ring-1 ring-slate-200">
-        {messages.length === 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-slate-400">Try asking:</p>
-            {SUGGESTIONS.map((s) => (
-              <button
-                key={s}
-                onClick={() => submit(s)}
-                className="block w-full rounded-lg border border-slate-200 px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
-        ))}
-
-        {ask.isPending && (
-          <div className="flex gap-1 text-slate-400">
-            <span className="animate-bounce">●</span>
-            <span className="animate-bounce [animation-delay:0.15s]">●</span>
-            <span className="animate-bounce [animation-delay:0.3s]">●</span>
-          </div>
-        )}
-        {ask.isError && <p className="text-sm text-red-600">Failed to get an answer. Please try again.</p>}
-        <div ref={bottomRef} />
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '22px 28px 8px', flex: 'none', borderBottom: '1px solid var(--border-subtle)' }}>
+        <h1 style={{ font: 'var(--type-h2)', letterSpacing: '-0.02em', color: 'var(--text-strong)', margin: 0 }}>Ask AI</h1>
+        <p style={{ font: 'var(--type-body-sm)', color: 'var(--text-muted)', margin: '4px 0 14px' }}>
+          Answers cite the emails they came from.
+        </p>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit(input);
-        }}
-        className="mt-3 flex gap-2"
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask anything about your emails…"
-          className="flex-1 rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-brand-500"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || ask.isPending}
-          className="rounded-lg bg-brand-600 px-5 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          Send
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function MessageBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === 'user';
-  return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[85%] ${isUser ? '' : 'w-full'}`}>
-        <div
-          className={`rounded-2xl px-4 py-2.5 text-sm ${
-            isUser ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-800'
-          }`}
-        >
-          <p className="whitespace-pre-wrap">{message.content}</p>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 'var(--content-max)', margin: '0 auto', padding: '24px 28px' }}>
+          {empty ? (
+            <div>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 12 }}>
+                Try asking…
+              </div>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    style={{
+                      textAlign: 'left',
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '13px 15px',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 14,
+                      color: 'var(--text-body)',
+                      boxShadow: 'var(--shadow-xs)',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {messages.map((m) =>
+                m.role === 'user' ? (
+                  <ChatBubble key={m.id} role="user">
+                    {m.content}
+                  </ChatBubble>
+                ) : (
+                  <ChatBubble
+                    key={m.id}
+                    role="assistant"
+                    footer={
+                      m.citations.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                          {m.citations.map((c, i) => (
+                            <SourceCard
+                              key={`${c.messageId}-${i}`}
+                              index={i + 1}
+                              subject={c.subject ?? '(no subject)'}
+                              sender={c.sender ?? undefined}
+                              date={c.date ?? undefined}
+                              onClick={() => navigate(`/inbox/${c.threadId}`)}
+                            />
+                          ))}
+                        </div>
+                      ) : undefined
+                    }
+                  >
+                    <span style={{ whiteSpace: 'pre-wrap' }}>{m.content}</span>
+                  </ChatBubble>
+                ),
+              )}
+              {ask.isPending && <ChatBubble role="assistant" typing />}
+              {ask.isError && (
+                <p style={{ font: 'var(--type-body-sm)', color: 'var(--danger)' }}>
+                  Couldn&apos;t get an answer. Try again.
+                </p>
+              )}
+            </div>
+          )}
         </div>
-        {message.citations.length > 0 && <Citations citations={message.citations} />}
       </div>
-    </div>
-  );
-}
 
-function Citations({ citations }: { citations: SourceCitation[] }) {
-  return (
-    <div className="mt-2 space-y-1.5">
-      <p className="text-xs font-medium text-slate-400">Sources</p>
-      {citations.map((c, i) => (
-        <Link
-          key={`${c.messageId}-${i}`}
-          to={`/inbox/${c.threadId}`}
-          className="block rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs hover:bg-slate-50"
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-slate-700">[S{i + 1}] {c.subject || '(no subject)'}</span>
-            <span className="text-slate-400">{formatDateTime(c.date)}</span>
+      <div style={{ flex: 'none', padding: '12px 28px 22px', background: 'var(--surface-page)' }}>
+        <div style={{ maxWidth: 'var(--content-max)', margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'var(--surface-card)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-xl)',
+              padding: '7px 7px 7px 16px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && send(input)}
+              placeholder="Ask anything about your inbox…"
+              style={{
+                flex: 1,
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 14,
+                color: 'var(--text-strong)',
+              }}
+            />
+            <button
+              onClick={() => send(input)}
+              aria-label="Send"
+              disabled={!input.trim() || ask.isPending}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                cursor: input.trim() && !ask.isPending ? 'pointer' : 'not-allowed',
+                background: 'var(--accent)',
+                color: '#fff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: input.trim() && !ask.isPending ? 1 : 0.5,
+              }}
+            >
+              <Icon name="arrowUp" size={18} />
+            </button>
           </div>
-          <p className="text-slate-500">{c.sender}</p>
-        </Link>
-      ))}
+        </div>
+      </div>
     </div>
   );
 }

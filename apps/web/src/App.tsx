@@ -17,8 +17,17 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center text-slate-500">
-        <div className="animate-pulse">Loading…</div>
+      <div
+        style={{
+          display: 'flex',
+          height: '100vh',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'var(--font-sans)',
+          color: 'var(--text-muted)',
+        }}
+      >
+        Loading…
       </div>
     );
   }

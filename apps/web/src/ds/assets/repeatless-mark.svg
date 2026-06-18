@@ -1,0 +1,5 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Repeatless">
+  
+  <path d="M19.8 7.84 A9 9 0 1 1 12.2 7.84" stroke="var(--accent, #2F6BFF)" stroke-width="2.7" stroke-linecap="round" fill="none"></path>
+  <path d="M16.8 5.4 L10.6 4.9 L13.7 11.0 Z" fill="var(--accent, #2F6BFF)"></path>
+</svg>

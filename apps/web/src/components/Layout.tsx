@@ -1,22 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import type { UserProfile } from '@repeatless/shared';
 import { api } from '../lib/api';
+import { Avatar, Icon, SyncIndicator, wordmarkInverse, type IconName } from '../ds';
 
-const NAV = [
-  { to: '/inbox', label: 'Inbox', icon: '📥' },
-  { to: '/chat', label: 'Ask AI', icon: '💬' },
-  { to: '/news', label: 'News Digest', icon: '📰' },
+const NAV: { to: string; label: string; icon: IconName }[] = [
+  { to: '/inbox', label: 'Inbox', icon: 'inbox' },
+  { to: '/chat', label: 'Ask AI', icon: 'sparkles' },
+  { to: '/news', label: 'News digest', icon: 'newspaper' },
 ];
 
+type SyncStatus = 'synced' | 'syncing' | 'error';
+
+function mapSyncStatus(status: string | undefined): SyncStatus {
+  if (status === 'error') return 'error';
+  if (status === 'initial' || status === 'incremental') return 'syncing';
+  return 'synced';
+}
+
+/** Dark app shell: brand wordmark, nav, live sync indicator, user footer. */
 export function Layout({ user }: { user: UserProfile }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const qc = useQueryClient();
 
   const sync = useQuery({
     queryKey: ['syncStatus'],
     queryFn: api.syncStatus,
-    refetchInterval: (q) => (q.state.data?.status === 'idle' ? 30_000 : 5_000),
+    refetchInterval: (q) => (mapSyncStatus(q.state.data?.status) === 'syncing' ? 5_000 : 30_000),
   });
 
   const triggerSync = useMutation({
@@ -33,66 +44,122 @@ export function Layout({ user }: { user: UserProfile }) {
     },
   });
 
-  const status = sync.data?.status ?? 'idle';
-  const busy = status === 'initial' || status === 'incremental';
+  const status = mapSyncStatus(sync.data?.status);
+  const inThread = location.pathname.startsWith('/inbox');
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="flex w-64 flex-col border-r border-slate-200 bg-white">
-        <div className="flex items-center gap-2 px-5 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 font-bold text-white">R</div>
-          <span className="font-semibold text-slate-900">Repeatless</span>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--surface-page)' }}>
+      <aside
+        style={{
+          width: 'var(--sidebar-width)',
+          flex: 'none',
+          background: 'var(--ink-900)',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          padding: '18px 14px',
+        }}
+      >
+        <div style={{ padding: '4px 8px 22px' }}>
+          <img src={wordmarkInverse} alt="Repeatless" style={{ height: 26 }} />
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-2">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50'
-                }`
-              }
-            >
-              <span aria-hidden>{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {NAV.map((item) => {
+            const active = item.to === '/inbox' ? inThread : location.pathname === item.to;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 11,
+                  padding: '9px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 500,
+                  color: active ? '#fff' : 'rgba(255,255,255,0.66)',
+                  background: active ? 'rgba(255,255,255,0.10)' : 'transparent',
+                }}
+              >
+                <Icon name={item.icon} size={19} color={active ? 'var(--blue-300)' : 'currentColor'} />
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
 
-        <div className="border-t border-slate-200 px-3 py-3 text-xs">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-slate-500">
-              <span className={`h-2 w-2 rounded-full ${busy ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`} />
-              {busy ? 'Syncing…' : 'Synced'}
-            </span>
-            <button
-              onClick={() => triggerSync.mutate()}
-              disabled={busy}
-              className="rounded px-2 py-1 text-brand-600 hover:bg-brand-50 disabled:opacity-50"
-            >
-              Refresh
-            </button>
-          </div>
-          <p className="text-slate-400">
-            {sync.data ? `${sync.data.threadCount} threads · ${sync.data.totalMessages} msgs` : '—'}
-          </p>
-          {sync.data?.lastError && <p className="mt-1 truncate text-red-500" title={sync.data.lastError}>⚠ {sync.data.lastError}</p>}
+        <div style={{ flex: 1 }} />
+
+        <div style={{ marginBottom: 14 }}>
+          <SyncIndicator
+            status={status}
+            threadCount={sync.data?.threadCount}
+            messageCount={sync.data?.totalMessages}
+            error={sync.data?.lastError ?? undefined}
+            onRefresh={() => triggerSync.mutate()}
+          />
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-slate-700">{user.displayName ?? user.email}</p>
-            <p className="truncate text-xs text-slate-400">{user.email}</p>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 8px 4px',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <Avatar name={user.displayName ?? user.email} size="sm" />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#fff',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {user.displayName ?? user.email}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                color: 'rgba(255,255,255,0.45)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {user.email}
+            </div>
           </div>
-          <button onClick={() => logout.mutate()} className="text-xs text-slate-400 hover:text-red-500">
-            Sign out
+          <button
+            onClick={() => logout.mutate()}
+            aria-label="Sign out"
+            style={{
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.5)',
+              padding: 4,
+              display: 'inline-flex',
+              borderRadius: 6,
+            }}
+          >
+            <Icon name="logout" size={17} />
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto bg-slate-50">
+      <main style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden' }}>
         <Outlet />
       </main>
     </div>

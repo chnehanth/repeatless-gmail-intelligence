@@ -1,0 +1,68 @@
+/* ===========================================================================
+   Repeatless — Typography tokens
+   ---------------------------------------------------------------------------
+   Geist for everything UI; Geist Mono for metadata, source IDs and citations.
+   Type scale is a ~1.2 modular scale tuned for dense product UI. Display sizes
+   tighten tracking; body stays neutral; mono opens tracking slightly.
+   =========================================================================== */
+
+:root {
+  /* Families */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
+  --font-display: var(--font-sans);
+
+  /* Weights */
+  --weight-light:    300;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-black:    800;
+
+  /* Font size scale */
+  --text-2xs:  11px;
+  --text-xs:   12px;
+  --text-sm:   13px;
+  --text-base: 14px;   /* default product UI size */
+  --text-md:   15px;
+  --text-lg:   16px;
+  --text-xl:   18px;
+  --text-2xl:  21px;
+  --text-3xl:  25px;
+  --text-4xl:  31px;
+  --text-5xl:  39px;
+  --text-6xl:  49px;
+  --text-7xl:  62px;
+
+  /* Line heights */
+  --leading-none:    1;
+  --leading-tight:   1.18;
+  --leading-snug:    1.34;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+
+  /* Letter spacing */
+  --tracking-tighter: -0.03em;
+  --tracking-tight:   -0.018em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.02em;
+  --tracking-wider:   0.06em;   /* eyebrows / overline labels */
+  --tracking-mono:    0.01em;
+
+  /* =========================================================================
+     Semantic type roles
+     ========================================================================= */
+  --type-display:    var(--weight-bold)    var(--text-6xl)/var(--leading-tight) var(--font-display);
+  --type-h1:         var(--weight-bold)    var(--text-4xl)/var(--leading-tight) var(--font-display);
+  --type-h2:         var(--weight-semibold) var(--text-3xl)/var(--leading-tight) var(--font-display);
+  --type-h3:         var(--weight-semibold) var(--text-2xl)/var(--leading-snug) var(--font-sans);
+  --type-h4:         var(--weight-semibold) var(--text-xl)/var(--leading-snug) var(--font-sans);
+  --type-body-lg:    var(--weight-regular) var(--text-lg)/var(--leading-normal) var(--font-sans);
+  --type-body:       var(--weight-regular) var(--text-base)/var(--leading-normal) var(--font-sans);
+  --type-body-sm:    var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-sans);
+  --type-label:      var(--weight-medium)  var(--text-sm)/var(--leading-snug) var(--font-sans);
+  --type-caption:    var(--weight-regular) var(--text-xs)/var(--leading-snug) var(--font-sans);
+  --type-mono:       var(--weight-medium)  var(--text-xs)/var(--leading-snug) var(--font-mono);
+  --type-overline:   var(--weight-semibold) var(--text-2xs)/var(--leading-snug) var(--font-sans);
+}

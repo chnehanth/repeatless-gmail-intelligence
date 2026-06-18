@@ -1,18 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Design system tokens + fonts (manifest of @imports). */
+@import './ds/styles.css';
 
-:root {
-  color-scheme: light;
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  font-family: var(--font-sans);
+  background: var(--surface-page);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Brand scrollbars */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-200);
+  border-radius: 99px;
+  border: 3px solid var(--surface-page);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
 }

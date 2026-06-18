@@ -9,6 +9,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Bind all interfaces (IPv4 + IPv6) so 127.0.0.1 and localhost both work.
+    host: true,
     proxy: {
       '/api': { target: API_TARGET, changeOrigin: true },
     },

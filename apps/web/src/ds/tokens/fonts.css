@@ -1,0 +1,13 @@
+/* ===========================================================================
+   Repeatless — Webfonts
+   ---------------------------------------------------------------------------
+   Geist (UI / display) + Geist Mono (metadata, source IDs, citations).
+   Geist is a clean geometric-leaning grotesque — modern, neutral, precise.
+   We use Geist Mono for the brand's "traceable to source" motif: timestamps,
+   [S#] citation tags, sync counts, keyboard hints.
+
+   NOTE: loaded from the Google Fonts CDN. For production, self-host the .woff2
+   binaries and replace these @import lines with local @font-face rules.
+   =========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
