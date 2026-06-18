@@ -21,7 +21,8 @@
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "db:migrate": "pnpm --filter @repeatless/api run db:migrate",
-    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "prepare": "pnpm --filter @repeatless/shared run build"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

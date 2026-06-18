@@ -35,7 +35,7 @@ probes, and an in-process SLO/error-budget tracker.
 ```
                          ┌──────────────────────────────┐
                          │   React SPA (apps/web)         │
-                         │   Vite · React Query · Tailwind│
+                         │ Vite · React Query · Design Sys│
                          └───────────────┬───────────────┘
                                          │ HTTPS (cookie session)
                                          ▼
@@ -71,9 +71,9 @@ their own modules. Each layer depends only on the one below it.
 |---|---|---|
 | **Backend** | Node 20 + TypeScript + Express | The spec emphasises Gmail rate-limit handling, sync strategy, and SRE telemetry. A long-lived service (vs. serverless functions) is the natural home for a **background sync worker**, a **client-side token-bucket throttle**, in-process **SLO tracking**, and a **Prometheus scrape endpoint** — all awkward in a serverless model. Express keeps the surface small and explicit. |
 | **Language** | TypeScript (strict, `noUncheckedIndexedAccess`) | End-to-end type safety; shared DTOs between client and server via a workspace package. |
-| **Frontend** | React + Vite + React Query + Tailwind | Fast DX, first-class server-state caching/polling (sync status, infinite thread lists), minimal CSS overhead. |
+| **Frontend** | React + Vite + React Query + the Repeatless Design System | Fast DX, first-class server-state caching/polling (sync status, infinite thread lists). UI is built from the vendored design-system components (tokens + Geist; `apps/web/src/ds`) for brand consistency. |
 | **Database** | Supabase (Postgres + pgvector) | Required. One store for relational data *and* vector search avoids a second datastore and keeps retrieval transactional with the source rows. |
-| **Primary AI** | Google Gemini (`gemini-1.5-flash`) | Required. Flash is fast and cheap for high-volume summarize/categorize/chat. |
+| **Primary AI** | Google Gemini (`gemini-2.5-flash` chat, `gemini-embedding-001` embeddings @ 768d) | Required. Flash is fast and cheap for high-volume summarize/categorize/chat; thinking is disabled for these bounded structured calls. |
 | **Secondary AI** | NVIDIA NIM (OpenAI-compatible) | Required. Used as an automatic **fallback** for generation, so a Gemini outage/quota exhaustion degrades gracefully instead of failing the product. NIM is also a selectable embedding provider. |
 | **Monorepo** | pnpm workspaces | Share types (`@repeatless/shared`) across api + web with a single install. |
 

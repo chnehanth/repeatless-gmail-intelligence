@@ -37,10 +37,12 @@ fallback AI). Monorepo via pnpm workspaces.
 ## Prerequisites
 
 - **Node ≥ 20** and **pnpm ≥ 9** (`npm i -g pnpm`)
-- A **Supabase** project (or local Postgres+pgvector via the included Docker Compose)
+- A **Supabase** project (free tier is fine). The app's data layer talks to
+  Supabase's REST API (PostgREST), so a Supabase instance is **required** — see
+  the Database section for the local alternative.
 - **Google Cloud** OAuth credentials with the Gmail API enabled
 - **Google Gemini** API key
-- **NVIDIA NIM** API key (free tier)
+- **NVIDIA NIM** API key (free tier — secondary/fallback model)
 
 ---
 
@@ -74,34 +76,50 @@ openssl rand -base64 48   # -> SESSION_SECRET
 ### 3. Google OAuth (Gmail API)
 
 1. In the [Google Cloud Console](https://console.cloud.google.com/): create a
-   project, **enable the Gmail API**, and configure the OAuth consent screen
-   (add yourself as a test user).
-2. Create **OAuth client credentials** (type: Web application).
-3. Add the authorized redirect URI:
+   project and **enable the Gmail API**.
+2. Configure the **OAuth consent screen** (User type: External). While the app
+   is unpublished it stays in *Testing* mode, so add your own Google address
+   under **Audience → Test users** — only listed users can sign in.
+3. Create **OAuth client credentials** (type: Web application).
+4. Add the authorized redirect URI exactly:
    `http://localhost:4000/api/v1/auth/google/callback`
-4. Put the client id/secret into `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+5. Put the client id/secret into `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
 
-### 4. Database
+> At sign-in Google shows a "Google hasn't verified this app" notice (normal for
+> apps in Testing) — choose **Advanced → Continue** to proceed.
 
-**Option A — local Postgres + pgvector (Docker):**
+### 4. Database (Supabase)
 
-```bash
-docker compose up -d        # starts Postgres with pgvector on :5432
-# .env defaults already point DATABASE_URL at this instance
-```
+The application's repositories use the Supabase client (PostgREST), so it needs
+a **Supabase** instance — not just a bare Postgres. Two options:
 
-**Option B — Supabase:** set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and
-`DATABASE_URL` (Supabase → Project Settings → Database → Connection string).
+**Recommended — Supabase cloud (free tier):**
 
-Run migrations (creates tables, the pgvector index, and the search RPC):
+1. Create a project at [supabase.com](https://supabase.com).
+2. Set in `.env`:
+   - `SUPABASE_URL` — Project Settings → Data API → Project URL
+   - `SUPABASE_SERVICE_ROLE_KEY` — Project Settings → API → **`service_role`** key
+   - `DATABASE_URL` — Project Settings → Database → Connection string (URI)
+
+> ⚠️ **URL-encode your DB password** in `DATABASE_URL`. If your Supabase password
+> contains characters like `@ ! # $ /`, percent-encode them (e.g. `@`→`%40`,
+> `#`→`%23`), or the migration runner fails with `Invalid URL`.
+
+**Local alternative — full Supabase stack via the Supabase CLI:**
+`supabase start` runs Postgres + PostgREST locally and prints the URL + keys to
+put in `.env`. (The bundled `docker-compose.yml` starts **only** Postgres+pgvector
+— enough for `pnpm db:migrate`, but the app's reads/writes need PostgREST, so use
+the CLI or the cloud for actually running the app.)
+
+Then run migrations (creates tables, the pgvector index, and the search RPC):
 
 ```bash
 pnpm db:migrate
 ```
 
-> **Embedding dimension:** the schema uses `vector(768)` for Gemini
-> `text-embedding-004`. If you switch `EMBEDDING_PROVIDER=nim` (1024-dim), change
-> the `vector(768)` columns in
+> **Embedding dimension:** the schema uses `vector(768)`, matching the default
+> Gemini `gemini-embedding-001` (requested at 768 dimensions). If you switch
+> `EMBEDDING_PROVIDER=nim` (1024-dim), change the `vector(768)` columns in
 > [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) and
 > [`0002_match_function.sql`](supabase/migrations/0002_match_function.sql) to
 > `vector(1024)` and set `EMBEDDING_DIMENSIONS=1024` **before** migrating.

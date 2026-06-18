@@ -40,3 +40,6 @@ apps/web/dist/
 # Local data
 *.local
 tmp/
+
+# Claude Code local (machine-specific) settings — keep shared launch.json
+.claude/settings.local.json
