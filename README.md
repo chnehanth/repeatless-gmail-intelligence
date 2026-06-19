@@ -69,10 +69,9 @@ app instance, and no data leaves your Supabase project.
 ### If your sign-in is ever blocked
 Google blocks accounts outside the test list while the app is unverified
 (restricted Gmail scope). If you hit *"Access blocked,"* just use the
-**one-click demo** above — it needs no Google account at all. Other options:
-- **Allow-list your email** — email the address you'll test with and it's added
-  to Google's test-user list in ~30 seconds.
-- **Demo video** — a short walkthrough is linked in the submission form.
+**one-click demo** above — it needs no Google account at all. Alternatively,
+**allow-list your email**: email the address you'll test with and it's added to
+Google's test-user list in ~30 seconds.
 
 ---
 
